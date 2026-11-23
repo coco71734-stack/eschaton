@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ESCHATON 팔라딘 아카이브</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Rajdhani:wght@600;700&family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+/*
+VOICE: a classified personnel archive from the BABEL corporation, calm and precise.
+IDEA: a scrolling dossier; each paladin's file card plays its intro as it reaches the reader.
+PICTURE: the motion card itself, large and centred, one per character.
+COLOUR and TYPE: pale archive grey and ink, each file tinted by its character's colour; Rajdhani names, Noto Sans KR text.
+LAYOUT: hero with file index, then six file sections, each card first and its record sheet below.
+*/
+:root{--col:min(640px,100%);color-scheme:dark;--bg:#09090b;--paper:#16171b;--ink:#ecebef;--sub:#9b9ba6;--rule:#26272d;--c:#e81692;--tape:#e81692}
+*{box-sizing:border-box;min-width:0}
+html.selfscroll,html.selfscroll body{height:var(--svh);overflow:hidden}
+#app{height:var(--svh);overflow-y:auto;overflow-x:clip;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.65 "Noto Sans KR",system-ui,sans-serif;overflow-x:clip;word-break:keep-all}
+a{color:inherit}
+.wrap{max-width:1040px;margin:0 auto;padding:0 max(5vw,16px)}
+/* hero */
+.hero{padding:clamp(40px,6vw,72px) max(5vw,16px) clamp(20px,3vw,32px);max-width:calc(640px + 2*max(5vw,16px))}
+.brand{font:700 15px/1 Rajdhani,sans-serif;letter-spacing:.08em;color:var(--sub)}
+.hero h1{font:900 clamp(34px,6vw,56px)/1.08 "Noto Sans KR",sans-serif;margin:14px 0 16px;text-wrap:balance}
+.hero p{max-width:640px;color:var(--sub);margin:0}
+.index{display:flex;flex-wrap:wrap;gap:10px;margin-top:32px;padding:0;list-style:none}
+.index a{display:inline-flex;align-items:center;gap:10px;min-height:44px;padding:0 16px 0 12px;border:1px solid var(--rule);border-radius:999px;text-decoration:none;font-weight:700;background:var(--paper)}
+.index a i{width:10px;height:10px;border-radius:50%;background:var(--c)}
+.index a:hover,.index a:focus-visible{border-color:var(--c)}
+a:focus-visible{outline:2px solid var(--c);outline-offset:2px}
+.hint{margin-top:18px;font-size:14px;color:var(--sub)}
+/* file section */
+.file{position:relative;isolation:isolate;padding:clamp(56px,8vw,110px) 0;scroll-margin-top:24px}
+.card{position:relative;width:var(--col);aspect-ratio:3/4;margin:0 auto;border-radius:6px;overflow:hidden;background:#e6e6ea;box-shadow:0 30px 60px -30px rgb(0 0 0/.45),0 0 0 1px rgb(0 0 0/.06)}
+.card video,.card img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+.replay{position:absolute;right:12px;bottom:12px;min-height:44px;padding:0 14px;border:0;border-radius:999px;background:rgb(0 0 0/.55);color:#fff;font:500 14px "Noto Sans KR",sans-serif;cursor:pointer;opacity:0;transition:opacity .3s}
+.card:hover .replay,.replay:focus-visible{opacity:1}
+/* record sheet: BABEL handover-file look (paper, black section tabs, red accents) — dense document scale */
+.sheet{--red:#d6182a;--ink:#121216;--sub:#6c6c76;--rule:#d4d4da;color:#121216;color-scheme:light;position:relative;max-width:640px;margin:0;background:#f6f6f8;padding:clamp(22px,4vw,40px) clamp(18px,4.4vw,44px) clamp(20px,3vw,32px);box-shadow:0 24px 50px -34px rgb(0 0 0/.4),0 0 0 1px rgb(0 0 0/.06);font-size:13px;line-height:1.6}
+.sheet .crn{position:absolute;width:16px;height:16px;border:1.5px solid #121216}
+.crn.a{top:10px;left:10px;border-right:0;border-bottom:0}.crn.b{top:10px;right:10px;border-left:0;border-bottom:0}.crn.c{bottom:10px;left:10px;border-right:0;border-top:0}.crn.d{bottom:10px;right:10px;border-left:0;border-top:0}
+.tab{position:absolute;right:-1px;top:clamp(70px,10vw,104px);background:#121216;color:#fff;writing-mode:vertical-rl;font:600 9.5px Rajdhani,sans-serif;letter-spacing:.32em;padding:12px 5px;border-left:2px solid var(--c)}
+.dhead{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding-bottom:10px;border-bottom:3px double #121216}
+.dlogo b{display:block;font:700 16px/1 Rajdhani,sans-serif;letter-spacing:.2em}
+.dlogo span{display:block;margin-top:4px;font:600 8.5px Rajdhani,sans-serif;letter-spacing:.3em;color:var(--sub)}
+.conf{text-align:right}
+.conf b{display:inline-block;border:1.5px solid var(--red);color:var(--red);font:700 13px/1 Rajdhani,sans-serif;letter-spacing:.22em;padding:5px 7px 4px 10px}
+.conf span{display:block;margin-top:5px;font:600 8.5px Rajdhani,sans-serif;letter-spacing:.24em;color:var(--sub)}
+.kick{margin:9px 0 0;font:600 9.5px Rajdhani,sans-serif;letter-spacing:.3em;color:var(--red)}
+.sec{display:flex;align-items:center;gap:10px;margin:22px 0 0;padding-bottom:7px;border-bottom:1.5px solid #121216}
+.sec i{font:700 13px/1 Rajdhani,sans-serif;background:#121216;color:#fff;font-style:normal;padding:4px 7px 3px}
+.sec b{font:700 13px/1 Rajdhani,sans-serif;letter-spacing:.22em}
+.sec span{color:var(--sub);font-weight:700;font-size:11px}
+.top{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:22px;margin-top:18px;align-items:start}
+.name{display:flex;align-items:flex-end;flex-wrap:wrap;gap:2px 12px}
+/* custom logotype per name: Chakra Petch outlines, 45-degree hairline cuts, the first A's left leg replaced by a red bar */
+.name b{display:block;line-height:0}
+.name .uemb{margin-left:auto;align-self:center;height:clamp(40px,6vw,56px);width:auto;opacity:.9}
+.name b svg{display:block;height:clamp(30px,7vw,58px);width:auto;max-width:100%}
+.title{margin-top:16px}
+.name i{font:700 clamp(14px,2vw,18px)/1 Rajdhani,sans-serif;font-style:normal;letter-spacing:.1em;color:#8a8a94;margin-bottom:calc(clamp(30px,7vw,58px)*.131 - .12em)}
+.krl{display:flex;align-items:center;gap:10px;margin-top:10px}
+.krl span{font-weight:900;font-size:clamp(18px,2.4vw,22px);letter-spacing:-.01em;line-height:1}
+.krl s{flex:1;height:1.5px;background:linear-gradient(90deg,var(--red) 0 40px,#c9c9d0 40px);text-decoration:none;margin-top:2px}
+.meta{margin-top:7px;font:600 9.5px Rajdhani,sans-serif;letter-spacing:.24em;color:var(--sub)}
+.meta em{font-style:normal;font-family:"Noto Sans KR",sans-serif;letter-spacing:.04em;font-weight:500;font-size:10.5px}
+.quote{margin:0;padding-left:9px;border-left:2px solid var(--red);font-size:14px;font-weight:700;line-height:1.5}
+.desc{margin:9px 0 0;color:#2c2c33;font-size:12.5px;line-height:1.7}
+.rows{margin:0;border-top:1.5px solid #121216;border-bottom:1.5px solid #121216}
+.rows div{display:grid;grid-template-columns:minmax(0,78px) minmax(0,1fr);align-items:center;border-bottom:1px solid var(--rule);padding:6px 0}
+.rows div:last-child{border-bottom:0}
+.rows dt{border-right:1px solid var(--rule);padding:0 10px 0 0;margin:0;font-weight:700;font-size:11px;line-height:1.3}
+.rows dt small{display:block;font:600 8px Rajdhani,sans-serif;letter-spacing:.2em;color:var(--sub)}
+.rows dd{margin:0;padding-left:11px;font-weight:700;font-size:12.5px;line-height:1.4}
+.rows dd.code{font:700 13.5px Rajdhani,sans-serif;letter-spacing:.14em}
+.rows dd.red{color:var(--red);font-weight:900}
+.iris{margin-top:18px}
+.iris .lab{display:flex;gap:18px;align-items:baseline;font-size:10.5px;font-weight:700}
+.iris .lab em{font:600 9.5px Rajdhani,sans-serif;letter-spacing:.24em;color:var(--red);font-style:normal}
+.bar{display:flex;align-items:center;gap:5px;margin-top:7px}
+.bar s{flex:1;height:12px;border:1.5px solid #121216;transform:skewX(-20deg);text-decoration:none;background:transparent}
+.bar s.on{background:var(--red);border-color:var(--red)}
+.bar b{margin-left:14px;font:700 22px/1 Rajdhani,sans-serif;color:var(--red);letter-spacing:.06em;white-space:nowrap}
+.warn{display:grid;grid-template-columns:28px minmax(0,1fr);margin-top:12px;border:1.5px solid var(--red)}
+.warn .hz{background:repeating-linear-gradient(-45deg,#121216 0 6px,var(--red) 6px 12px)}
+.warn .wb{display:grid;grid-template-columns:minmax(0,130px) minmax(0,1fr);gap:8px 18px;padding:12px 16px}
+.warn strong{display:block;font-size:15px;font-weight:900;color:var(--red);line-height:1.3}
+.warn small{display:block;color:var(--sub);font-size:10.5px;margin-top:3px}
+.warn p{margin:0;font-size:12.5px;line-height:1.7}
+.notes{list-style:none;margin:4px 0 0;padding:0}
+.notes li{border-bottom:1px solid var(--rule)}
+.notes summary{display:grid;grid-template-columns:26px minmax(0,1fr) auto;align-items:center;gap:8px;padding:9px 0;cursor:pointer;list-style:none}
+.notes summary::-webkit-details-marker{display:none}
+.notes summary i{font:700 11px/1 Rajdhani,sans-serif;font-style:normal;color:var(--red);letter-spacing:.06em}
+.notes summary b{font-size:12.5px;line-height:1.5}
+.chev{width:22px;height:22px;display:grid;place-items:center}
+.chev::before{content:"";width:9px;height:9px;border-right:1.3px solid #8a8a94;border-bottom:1.3px solid #8a8a94;transform:translateX(-2px) rotate(-45deg);transition:transform .25s ease,border-color .2s}
+.notes summary:hover .chev::before{border-color:#121216}
+.notes details[open] .chev::before{border-color:var(--red);transform:translateY(-2px) rotate(45deg)}
+.notes summary:focus-visible{outline:2px solid var(--red);outline-offset:2px}
+.notes p{margin:0 0 11px 34px;font-size:11.5px;line-height:1.65;color:#55555d}
+.dfoot{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;margin-top:22px;padding-top:11px;border-top:1.5px solid #121216}
+.dfoot svg{display:block;width:min(160px,40vw);height:24px}
+.dfoot .bc span{display:block;margin-top:6px;font:600 9px Rajdhani,sans-serif;letter-spacing:.2em}
+.dfoot .bc small{display:block;font:600 7.5px Rajdhani,sans-serif;letter-spacing:.2em;color:var(--sub)}
+.dfoot .pg{font:600 8.5px Rajdhani,sans-serif;letter-spacing:.22em;color:var(--sub);text-align:right}
+/* reveal */
+/* record sheet: contents are static; the page unfolds from its top-left corner like a curled sheet of paper */
+@property --a{syntax:'<length>';inherits:true;initial-value:0px}
+.sbox{--a:0px;position:relative;max-width:640px;margin:clamp(28px,4vw,44px) auto 0;transition:--a 1.8s cubic-bezier(.33,0,.2,1)}
+.sbox.in{--a:1700px}
+.sbox .sheet{clip-path:polygon(0 0,var(--a) 0,0 var(--a))}
+/* the folded-back flap rides along the fold line */
+.peelw{position:absolute;inset:0;z-index:2;pointer-events:none;filter:drop-shadow(-6px 8px 10px rgb(0 0 0/.28))}
+.peel{position:absolute;inset:0;pointer-events:none;background:linear-gradient(135deg,#fdfdfe calc(var(--a)*.7071 - 160px),#d2d2d8 calc(var(--a)*.7071 - 30px),#b9b9c1 calc(var(--a)*.7071));
+ clip-path:polygon(var(--a) 0,0 var(--a),calc(var(--a)/2 - min(var(--a)/2,110px)) calc(var(--a)/2 - min(var(--a)/2,110px)))}
+.sbox.in .peel{visibility:visible}
+@media(prefers-reduced-motion:reduce){.sbox{--a:1700px;transition:none}}
+/* race overview: portrait unit card (same design as the video's unit cards) + readable summary */
+.race{padding:clamp(36px,5vw,64px) 0 0;scroll-margin-top:24px}
+.race+.file{padding-top:clamp(28px,3.5vw,44px)}
+.rgrid{max-width:640px;margin:0 auto}
+.rfw{position:relative;isolation:isolate}
+.rtext{display:grid;grid-template-columns:minmax(0,170px) minmax(0,1fr);gap:4px 24px;margin-top:18px}
+.rtext .rhead{grid-row:span 3}
+.rfig{position:relative;margin:0;border-radius:6px;overflow:hidden}
+.rfig img{display:block;width:100%;height:auto}
+.rfig .r1,.rfig .r2{position:absolute;inset:0}
+/* in-motion: black field -> band + labels sweep in along the diagonal -> silhouettes land */
+.rfig .r0{opacity:0;transition:opacity .6s cubic-bezier(.2,.7,.2,1)}
+.rfig .r1{clip-path:inset(0 0 100% 0);transition:clip-path .9s cubic-bezier(.65,0,.35,1) .45s}
+.rfig .r2{opacity:0;transform:translate(-5%,4%) scale(1.04);transition:opacity .6s ease 1.3s,transform 1s cubic-bezier(.2,.7,.2,1) 1.3s}
+.rfw.in .r0{opacity:1}
+.rfw.in .r1{clip-path:inset(0)}
+.rfw.in .r2{opacity:1;transform:none}
+.rfig img{display:block;width:100%;height:auto}
+.rlabel{color:color-mix(in srgb,var(--c) 55%,#fff);font:700 11px Rajdhani,"Noto Sans KR",sans-serif;letter-spacing:.14em}
+.rtext h2{margin:4px 0 0;font-size:20px;font-weight:900;line-height:1.2}
+.rtext h2 .en{display:block;margin:2px 0 0!important;font:700 13px Rajdhani,sans-serif;color:var(--sub);margin-left:6px;letter-spacing:.04em}
+.rtext p{margin:0;font-size:13px;line-height:1.7;color:#cfcfd6}
+.rtext mark{background:none;color:var(--c);font-weight:700}
+.rline{opacity:0;transform:translateY(8px);transition:opacity .5s ease,transform .5s ease;display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 8px;margin-top:10px;padding-left:9px;border-left:2px solid var(--c);font-size:12.5px}
+.rline.on{opacity:1;transform:none}
+.rline span{color:var(--sub);font-size:11.5px}
+.rline b{font-weight:700}
+.rline i{width:1px;height:10px;background:var(--rule);margin:0 6px;align-self:center}
+.spec{list-style:none;margin:10px 0 0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(104px,1fr));gap:10px}
+.spec li{border-left:2px solid var(--c);padding:1px 0 1px 9px;font-weight:700;font-size:12.5px}
+.spec span{display:inline;margin-right:8px;font-weight:400;font-size:11.5px;color:var(--sub)}
+.rmem{margin-top:8px;font-size:12px;color:var(--sub)}
+@media(max-width:600px){.rtext{grid-template-columns:minmax(0,1fr)}.rtext .rhead{grid-row:auto;margin-bottom:8px}}
+@media(prefers-reduced-motion:reduce){.rfig img{opacity:1!important;clip-path:none!important;transform:none!important;transition:none!important}}
+/* prologue story */
+.story{--acc:#d6182a;position:relative;isolation:isolate;max-width:calc(640px + 2*max(5vw,16px));padding-bottom:0}
+.kick2{font:700 13px Rajdhani,sans-serif;letter-spacing:.32em;color:var(--sub);display:flex;align-items:center;gap:12px}
+.kick2 b{color:var(--acc,var(--tape))}
+.kick2::after{content:"";flex:1;height:1px;background:var(--rule)}
+.story em{font-style:normal;color:#fff;font-weight:700}
+.story p{margin:10px 0 0;font-size:14px;line-height:1.65;color:#cfcfd6}
+.loss{display:grid;grid-template-columns:auto minmax(0,1fr);gap:clamp(18px,4vw,36px);align-items:end;margin-top:clamp(26px,4vw,40px)}
+.big{position:relative;font:700 clamp(64px,10vw,100px)/.8 Rajdhani,sans-serif;color:var(--acc);letter-spacing:-.02em}
+.big span{font-size:.38em;margin-left:4px}
+.big small{position:static;display:block;margin:14px 0 0 2px;line-height:1;font:700 11px Rajdhani,sans-serif;letter-spacing:.3em;color:var(--sub);white-space:nowrap}
+.story .lead{margin:0;font-size:clamp(13.5px,1.5vw,15.5px);font-weight:700;line-height:1.45;color:#fff}
+blockquote{margin:22px 0 0;padding:16px 0 0;border-top:2px solid #fff;font-size:14px;line-height:1.8;color:#cfcfd6}
+blockquote .bqh{display:block;font-weight:900;font-size:clamp(17px,2.2vw,21px);line-height:1.35;color:#fff;margin-bottom:12px;text-wrap:balance}
+blockquote mark{background:var(--acc);color:#0b0b0d;font-weight:700;padding:0 .3em}
+.lineup{margin:28px 0 0;position:relative;isolation:isolate}
+.lineup img{display:block;width:100%;height:auto}
+.lineup .lf{position:absolute;inset:0}
+/* lineup: the red slash wipes up, then the six figures cut in one after another */
+.lineup .lb{clip-path:inset(100% 0 0 0);transition:clip-path .8s cubic-bezier(.65,0,.35,1)}
+.lineup .lf{opacity:0;transform:translateX(-46px) skewX(-10deg);transition:opacity .55s ease,transform .8s cubic-bezier(.2,.7,.2,1);}
+.lineup .lb.on{clip-path:inset(0)}
+.lineup .lf.on{opacity:1;transform:none;transition-delay:calc(.3s + var(--k)*.16s)}
+/* typewriter: every character is laid out from the start (no reflow), then revealed one by one */
+.tw .c{visibility:hidden}
+.tw .c.on{visibility:visible}
+.tw .c.cur{position:relative}
+.tw .c.cur::after{content:"";position:absolute;left:100%;top:.12em;bottom:.08em;width:.5em;background:#fff;opacity:.85;animation:blink .7s steps(1) infinite}
+.tw.done .c.cur::after{display:none}
+.tw mark{background:none;padding:0}
+.story .hl{font-weight:900;color:var(--acc)}
+/* red marker sweeps across once the line has finished typing */
+.story .mk{font-weight:700;padding:0 .2em;margin:0 -.1em;background:linear-gradient(var(--acc),var(--acc)) 0 0/0% 100% no-repeat;transition:background-size .6s cubic-bezier(.65,0,.35,1),color .3s ease .2s}
+.story .tw.done .mk{background-size:100% 100%;color:#0b0b0d}
+.tw mark .c.on{background:var(--acc)}
+.story blockquote.wait{border-top-color:transparent}
+@keyframes blink{50%{opacity:0}}
+/* glossary entries arrive in turn */
+.gloss div{opacity:0;transform:translateX(-24px);transition:opacity .55s ease,transform .6s cubic-bezier(.2,.7,.2,1)}
+.gloss.in div{opacity:1;transform:none;transition-delay:.8s}
+.gloss.in div:nth-child(2){transition-delay:1.1s}.gloss.in div:nth-child(3){transition-delay:1.4s}
+.gloss{border-top-color:transparent;background:linear-gradient(#fff,#fff) 0 0/0 2px no-repeat;transition:background-size .7s cubic-bezier(.7,0,.2,1)}
+.gloss.in{background-size:100% 2px}
+/* intro: line, full-screen counter, then the number flies into place */
+#intro{--acc:#d6182a;position:fixed;inset:0;z-index:100;background:var(--bg);pointer-events:auto;cursor:pointer}
+#intro .ln{position:absolute;left:0;right:0;height:2px;background:#fff;transform-origin:0 50%;transform:scaleX(0)}
+#intro .nw{position:absolute;left:0;right:0;overflow:hidden;display:flex;justify-content:center;align-items:flex-end}
+#intro .big{font-size:min(44vw,58vh);line-height:.8;transform:translateY(105%);white-space:nowrap}
+.story .big.wait{visibility:hidden}
+@media(prefers-reduced-motion:reduce){.tw .c{visibility:visible}.tw .c.cur::after{display:none}.lineup .lb,.lineup .lf,.gloss div,.rline{transition:none;clip-path:none;opacity:1;transform:none}.seg i{background:var(--acc);border-color:var(--acc)}}
+.iris2{margin-top:clamp(44px,6vw,64px)}
+.meter{margin-top:16px}
+.seg{display:flex;gap:6px}
+.seg i{flex:1;height:18px;border:2px solid #3a3a42;transform:skewX(-20deg);transition:background .18s,border-color .18s}
+.seg i.on{background:var(--acc);border-color:var(--acc);transition-delay:calc(var(--k,0)*90ms)}
+.seg i:nth-child(n+9){--acc:#fff}
+.ends{display:flex;justify-content:space-between;margin-top:10px;font:700 11px Rajdhani,sans-serif;letter-spacing:.26em;color:var(--sub)}
+.ends b{color:#fff}
+.you{display:grid;grid-template-columns:minmax(0,200px) minmax(0,1fr);gap:clamp(20px,4vw,32px);align-items:center;margin-top:clamp(44px,6vw,64px)}
+.you figure{margin:0;transform:rotate(-3deg);box-shadow:0 24px 40px -18px rgb(0 0 0/.9)}
+.you img{display:block;width:100%;height:auto}
+.you p{margin-top:12px}
+.gloss{margin:26px 0 0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;border-top:2px solid #fff}
+.gloss div{padding:14px 14px 0 0}
+.gloss div+div{padding-left:14px;border-left:1px solid var(--rule)}
+.gloss dt{font-weight:900;font-size:14px;display:flex;align-items:baseline;gap:6px;flex-wrap:wrap}
+.gloss dt i{font:700 11px Rajdhani,sans-serif;font-style:normal;color:var(--acc);letter-spacing:.1em}
+.gloss dt small{font:700 10px Rajdhani,sans-serif;letter-spacing:.24em;color:var(--sub)}
+.gloss dd{margin:6px 0 0;color:#a9a9b3;font-size:12.5px;line-height:1.6}
+.rvs{opacity:0;transform:translateY(22px);transition:opacity .8s ease,transform .8s cubic-bezier(.2,.7,.2,1)}
+.rvs.in{opacity:1;transform:none}
+@media(max-width:600px){.loss,.you{grid-template-columns:minmax(0,1fr)}.gloss{grid-template-columns:minmax(0,1fr)}.gloss div+div{padding-left:0;border-left:0;border-top:1px solid var(--rule);margin-top:12px}.you figure{max-width:200px}.big small{position:static;display:block;margin-top:10px}}
+@media(prefers-reduced-motion:reduce){.rvs{opacity:1;transform:none;transition:none}}
+/* footer */
+.foot{max-width:calc(640px + 2*max(5vw,16px));padding-top:clamp(56px,8vw,96px);padding-bottom:72px;color:#cfcfd6;font-size:15px}
+.foot .about{margin:18px 0 0;line-height:1.8}
+.foot a{color:#fff;text-decoration-color:var(--tape);text-underline-offset:3px}
+.foot a:hover{color:var(--tape)}
+.fgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:28px;margin-top:36px;padding-top:24px;border-top:2px solid #fff}
+.fgrid h4{margin:0 0 10px;font:700 13px Rajdhani,sans-serif;letter-spacing:.3em;color:var(--tape)}
+.fgrid dl{margin:0}
+.fgrid dl div{display:grid;grid-template-columns:104px minmax(0,1fr);padding:7px 0;border-bottom:1px solid var(--rule)}
+.fgrid dt{font:700 12px/1.9 Rajdhani,sans-serif;letter-spacing:.2em;color:var(--sub)}
+.fgrid dd{margin:0}
+
+/* warning tapes: flat magenta bands behind each character file, running diagonally down the gutters; the card and sheet sit on top */
+.bgt{position:absolute;inset:0;overflow:hidden;z-index:-1;pointer-events:none}
+@media(min-width:1080px){.bgt{overflow-x:clip;overflow-y:visible}}
+.race{position:relative;isolation:isolate}
+/* tapes that cross behind a race card or the lineup: full viewport width, a little taller than the image so they never clip at the screen edge */
+.bgt.rb,.bgt.st{left:50%;right:auto;top:-90px;bottom:-90px;width:100vw;transform:translateX(-50%);overflow:hidden}
+.tape{position:absolute;left:50%;width:200vw;height:clamp(40px,5vw,64px);display:flex;align-items:center;overflow:hidden;background:var(--tape);
+ transform:translate(calc(-50% + var(--sx,0px)),-50%) rotate(var(--r));will-change:transform}
+.tape.thin{height:clamp(24px,2.8vw,34px)}
+.run{display:flex;flex:none;white-space:nowrap;animation:tape 170s linear infinite;will-change:transform}
+.tape.rev .run{animation-direction:reverse}
+.run span{flex:none;font:clamp(26px,3.5vw,44px)/1 Anton,Impact,"Arial Narrow",sans-serif;color:#0b0b0d;letter-spacing:.01em;padding:0 .55em;text-transform:uppercase}
+.tape.thin .run span{font:700 clamp(11px,1.3vw,14px)/1 Rajdhani,sans-serif;letter-spacing:.32em;padding:0 1.6em}
+@keyframes tape{to{transform:translateX(-50%)}}
+@media(prefers-reduced-motion:reduce){.run{animation:none}.tape{transform:translate(-50%,-50%) rotate(var(--r))}}
+@media(max-width:700px){.name .uemb{height:30px}.krl span{font-size:17px}.conf span{letter-spacing:.14em}.rows dt small{letter-spacing:.12em}.top,.warn .wb{grid-template-columns:minmax(0,1fr)}.tab{display:none}.dfoot{flex-direction:column;align-items:flex-start}.dfoot .pg{text-align:left}}
+@media(prefers-reduced-motion:reduce){.rv{opacity:1;transform:none;transition:none}.bar s{transition:none}}
+</style>
+</head>
+<body>
+<header class="wrap hero">
+  <div class="brand">ESCHATON · BABEL PALADIN ARCHIVE</div>
+</header>
+<!--FILM-->
+<section class="wrap story" aria-labelledby="st-h">
+ <div class="kick2">PROLOGUE <b>//</b> YEAR 2098</div>
+ <div class="loss">
+  <div class="big"><b>80</b><span>%</span><small>HUMANITY LOST</small></div>
+  <p class="lead tw" id="st-h">2098년, <b class="hl">‘세라핌’의 출현</b>으로 인류의 80%가 사라졌습니다. 세라핌이 퍼뜨린 <b class="hl">‘아이리스’</b>에 닿은 인간은 괴물이 되었고, 바벨은 이에 맞서 <b class="hl">특수부대 ‘에스카톤’</b>을 창설합니다.</p>
+ </div>
+ <blockquote class="tw"><span class="bqh">인류가 만들어낸 최강의 걸작이자 최후의 희망, 에스카톤.</span>그러나 그 실체는 <mark>전투력만 최강인 문제아 집단</mark>이었는데…!</blockquote>
+ <figure class="lineup" role="img" aria-label="에스카톤 대원 여섯 명의 실루엣"><img class="lb" src="media/lineup/band.png" alt="" width="1280" height="520"><img class="lf" style="--k:0" src="media/lineup/0.png" alt="" width="1280" height="520"><img class="lf" style="--k:1" src="media/lineup/1.png" alt="" width="1280" height="520"><img class="lf" style="--k:2" src="media/lineup/2.png" alt="" width="1280" height="520"><img class="lf" style="--k:3" src="media/lineup/3.png" alt="" width="1280" height="520"><img class="lf" style="--k:4" src="media/lineup/4.png" alt="" width="1280" height="520"><img class="lf" style="--k:5" src="media/lineup/5.png" alt="" width="1280" height="520"></figure>
+ <div class="iris2 rvs">
+  <p class="tw">아이리스를 이식해 탄생한 대원들은 태생적으로 오염을 안고 있으며, 오염도가 한계에 달하면 <span class="mk">괴수 ‘버딕트’</span>로 변해버립니다.</p>
+  <div class="meter" aria-hidden="true"><div class="seg"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><div class="ends"><span>PALADIN 0%</span><b>LIMIT → VERDICT</b></div></div>
+ </div>
+ <div class="you rvs">
+  <figure><img src="media/handover_luka.jpg" alt="신입 관리관 인수인계 자료 예시 (루카)" loading="lazy" width="900" height="1273"></figure>
+  <div><div class="kick2">YOU ARE <b>//</b> NEW COMMANDER</div><p class="tw">플레이어는 <em>신입 관리관</em>이 되어 문제아 대원들을 통제하고 오염도를 관리하며, 이들을 인류의 구원자로 성장시켜야 합니다.</p></div>
+ </div>
+ <dl class="gloss">
+  <div><dt><i>01</i>세라핌<small>SERAPHIM</small></dt><dd>2098년 하늘에 나타난 붉은 눈의 존재. 모든 재앙의 근원.</dd></div>
+  <div><dt><i>02</i>아이리스<small>IRIS</small></dt><dd>세라핌이 퍼뜨린 오염 물질. 인간을 괴수로 바꿉니다.</dd></div>
+  <div><dt><i>03</i>버딕트<small>VERDICT</small></dt><dd>아이리스에 감염된 괴수. 핵무기도 통하지 않습니다.</dd></div>
+ </dl>
+</section>
+<main id="files"></main>
+<footer class="wrap foot">
+ <div class="fcol">
+  <div class="kick2">PRJ. ESCHATON <b>//</b> 2053060 최영은</div>
+  <p class="about">캐주얼 RPG 육성 게임〈PRJ. ESCHATON〉의 기획, 캐릭터 디자인, 프롤로그 영상 및 캐릭터 소개 영상을 제작했습니다. 자세한 기획과정과 의도는 <a href="https://docs.google.com/document/d/12eMTcrcsnPziuQyt_u9Ft16YsXQXS91hlycdTnyIkIo/edit?usp=sharing" target="_blank" rel="noopener">이곳</a>에서 확인하실 수 있습니다.</p>
+  <div class="fgrid">
+   <section><h4>HOW TO CONTACT</h4><dl>
+    <div><dt>MAIL</dt><dd><a href="mailto:s71734@naver.com">s71734@naver.com</a></dd></div>
+    <div><dt>TEL</dt><dd><a href="tel:01041417321">010 4141 7321</a></dd></div></dl></section>
+   <section><h4>SNS INFO</h4><dl>
+    <div><dt>INSTAGRAM</dt><dd><a href="https://www.instagram.com/hirl_artwork" target="_blank" rel="noopener">@hirl_artwork</a></dd></div>
+    <div><dt>X</dt><dd><a href="https://x.com/drawing_hirl" target="_blank" rel="noopener">@drawing_hirl</a></dd></div>
+    <div><dt>PIXIV</dt><dd><a href="https://www.pixiv.net/users/21300384/artworks" target="_blank" rel="noopener">hirl / 21300384</a></dd></div>
+    <div><dt>ARTSTATION</dt><dd><a href="https://www.artstation.com/hirl" target="_blank" rel="noopener">artstation.com/hirl</a></dd></div></dl></section>
+  </div>
+ </div>
+</footer>
+<script>
+{
+// If the page is laid out at full content height (the host scrolls, not us), nothing inside can see the scroll.
+// Then cap the document to one screen and scroll an inner container instead, so scroll effects keep working.
+let SC=null;
+{const sh=Math.max(screen.height||0,640);
+ if(innerHeight>sh*1.35){const vh=Math.min(sh,innerHeight);document.documentElement.style.setProperty('--svh',vh+'px');document.documentElement.classList.add('selfscroll');
+  const app=document.createElement('div');app.id='app';[...document.body.childNodes].filter(n=>n.nodeName!=='SCRIPT').forEach(n=>app.appendChild(n));document.body.prepend(app);SC=app}}
+const VH=()=>SC?SC.clientHeight:innerHeight, scrollTop=()=>SC?SC.scrollTop:scrollY, scrollEl=SC||window;
+const F=[
+{id:'luka',c:'#e81692',en:'LUKA',kr:'루카',code:'PSI-01',unit:'사이오닉',cls:'중력 조작 / 1세대 초능력자',pos:'원거리 딜러',iris:12,
+ q:'"버딕트 야호-!"',desc:'초능력자를 인위적으로 만들어내기 위한 사이오닉 실험의 유일한 생존체. 1세대임에도 성능은 우수하지만 근무 태도가 불량합니다.',
+ dt:'근무 태만',rdt:'만성 과부하',dd:'일을 시키면 대놓고 싫어합니다. 업무 시간 안팎으로 연락 두절이 잦고, 출격 대기 중에도 자리를 이탈해 놀러 갑니다. 보고서와 야근은 특히 질색합니다.',
+ pts:[['하트 모양 중력구','중력을 다루는 능력을 하트 모양의 구체로 표현하고, 마젠타 핑크와 강한 에너지 이펙트로 1세대 초능력자의 존재감을 살렸습니다.'],['가벼운 성격','일보다 노는 게 좋은 자유분방한 성격이 드러나도록 오프숄더, 리본, 하트 장식으로 가볍고 경쾌한 인상을 더했습니다.'],['카인과의 대비','같은 사이오닉인 카인의 차갑고 정적인 이미지와 대비되도록 밝은 색과 역동적인 포즈를 썼습니다.']]},
+{id:'kain',c:'#1878e8',en:'KAIN',kr:'카인',code:'PSI-05',unit:'사이오닉',cls:'시공간 조작 / 2세대 사이오닉',pos:'서포터',iris:22,
+ q:'"조용히 좀 하지? 골 울리는데…"',desc:'루카의 실험 데이터를 기반으로 제작된 2세대 사이오닉. 시공간을 찢어 아군에게 강화 효과를 부여합니다.',
+ dt:'신경 과민',rdt:'만성 과부하',dd:'인간의 뇌로 과도한 연산을 상시 수행해 매우 예민합니다. 언행이 공격적이고 소음을 싫어합니다. 루카를 구세대이자 열등한 개체로 여겨 대놓고 싫어합니다.',
+ pts:[['블루 포인트 컬러','제복의 원형을 유지하면서 슬릿에만 색을 제한적으로 쓰고, 루카의 마젠타와 대비되는 네온 블루를 골랐습니다.'],['시계 모티프 이펙트','시공간을 찢어 아군을 강화하는 능력을 시계 모티프 이펙트로 시각화했습니다.'],['SF 실루엣','제복 실루엣은 유지하되 구조적인 패널과 미래적인 디테일을 더해 SF 초능력 종족의 정체성을 강화했습니다.']]},
+{id:'sheria',c:'#be1022',en:'SHERIA',kr:'셰리아',code:'MKL-02',unit:'미카엘라',cls:'인공 천사 / 학살자',pos:'극딜',iris:47,
+ q:'"아, 미안. 없애 버렸다~"',desc:'세라핌의 파편 중 가장 파괴적이고 잔혹한 학살 기록만을 선별해 만든 인공 천사. 대원 중에서는 비교적 협조적입니다.',
+ dt:'관리관 집착',rdt:'감정 결여',dd:'감정이 옅고 이상한 방향으로 표출됩니다. 제압 대상 외 잔존 개체까지 전원 섬멸하며, 담당 관리관에게 강하게 집착합니다. \'담당 교체\'라는 말은 금기입니다.',
+ pts:[['레드 포인트 컬러','검은색과 백색 제복에 붉은색을 집중 배치해 위험한 인공 천사의 인상을 강조했습니다.'],['눈알과 천사 모티프 무기','세라핌을 상징하는 눈과 기계 날개 형태를 낫에 결합해 적의 데이터를 이식받은 존재임을 드러냈습니다.'],['사신의 낫','천사의 형상에 사신의 낫을 쥐여 성스러운 외형과 죽음을 집행하는 본질을 한 번에 드러냈습니다.']]},
+{id:'hailo',c:'#5c68b0',en:'HAILO',kr:'하일로',code:'MKL-06',unit:'미카엘라',cls:'인공 천사 / 감각 억제',pos:'힐러',iris:72,
+ q:'"아프십니까? 참으십시오."',desc:'감정을 프로그램으로 제어받는 인공 천사 힐러입니다.',
+ dt:'공감 불능',rdt:'감정 결여',dd:'감정 반응과 공감 능력이 없어 민간인 대응 임무에 배치할 수 없습니다. 스스로 판단하면 통제할 수 없는 수준의 전력을 지녀 구속구로 봉인되어 있습니다.',
+ pts:[['눈을 가리는 날개 장식','감정을 제어받는 설정을 바탕으로 눈을 가리는 날개를 더해 신비롭고 초월적인 인상을 표현했습니다.'],['신부복 모티프','긴 로브와 비대칭 어깨 장식으로 성직자 같은 신성함을 주고, 검은 이너와 금속 장식으로 SF 제복의 구조를 유지했습니다.']]},
+{id:'shubna',c:'#b08434',en:'SHUBNA',kr:'슈브나',code:'BST-03',unit:'비스타즈',cls:'염소 수인 / 메이드',pos:'근접 딜러',iris:31,
+ q:'"양이 아니에요오… 염소랍니다"',desc:'버딕트로 변한 주인들을 차마 죽이지 못한 채 수년간 저택을 봉쇄하고 홀로 버틴 메이드입니다.',
+ dt:'식탐',rdt:'본능 폭주',dd:'전투 중에도 먹을 것에 정신이 팔려 교전에서 이탈하고, 집중 지속 시간이 짧습니다. 봉쇄된 저택 근처를 지나면 원인 모를 전투 효율 저하가 나타납니다. \'양\'이라는 오해를 자주 받습니다.',
+ pts:[['저택 모티프 배경','저택을 지켜온 메이드라는 설정을 반영해 폐허가 된 저택을 배경에 배치했습니다.'],['메이드 의상','주인을 잊지 못하고 지금까지 메이드 행세를 이어가는 설정에 맞춰, 원안보다 프릴 장식을 늘리고 앞치마를 더해 메이드다운 모습을 분명히 했습니다.'],['예초기 모티프 무기','저택 정원을 돌보던 메이드라는 점에서 출발해, 예초기를 개조한 회전 블레이드를 무기로 들려 메이드다운 무기를 표현했습니다.']]},
+{id:'khalid',c:'#129696',en:'KHALID',kr:'칼리드',code:'BST-04',unit:'비스타즈',cls:'늑대 수인 / 서번트',pos:'탱커',iris:58,
+ q:'"주인님의 충직한 종, 칼리드입니다"',desc:'고위 간부 가문의 경호 집사였던 늑대 수인. 전투 능력과 내구도는 부대 최상위 수준입니다.',
+ dt:'지시 의존',rdt:'본능 폭주',dd:'폭주로 옛 주인을 해친 과거가 있어 입마개를 하고 있습니다. 명시되지 않은 행동은 일절 하지 않아, "알아서 해" 같은 모호한 지시를 받으면 그 자리에서 대기합니다. 옛 주인에 관한 질문은 금기입니다.',
+ pts:[['입마개','폭주로 주인을 해친 과거를 입마개로 암시하고, 충성심과 위험한 야성이 공존하는 양면성을 표현했습니다.'],['배경','저택의 문과 석조 구조물로 경호 집사였던 과거와 문 앞을 지키는 수호자의 이미지를 강조했습니다.'],['기사 모티프 건틀릿','기사의 갑주를 모티프로 한 대형 건틀릿으로 묵직한 실루엣을 만들고, 발톱 구조로 늑대의 야성을 살렸습니다.']]}
+];
+const R={
+ luka:{id:'psionic',no:'01',c:'#7034d4',en:'PSIONIC',sl:3,kr:'사이오닉',lead:'아이리스를 이용한 실험으로 인간의 잠재 뇌를 강제 각성시켜 개발한',hi:'초능력자 집단',tail:'. 현실을 비트는 강력한 능력을 쓰지만, 인간의 뇌로 그 힘을 감당하느라 늘 과부하에 시달립니다.',spec:[['종족 컨셉','실험체 초능력자'],['포지션','딜러 / 서포터'],['결함 요소','만성 과부하']],m:'루카, 카인'},
+ sheria:{id:'mikaela',no:'02',c:'#b0122a',en:'MIKAELA',sl:6,kr:'미카엘라',lead:'버딕트의 몸에 인간의 유전자를 이식해 만든 인공 천사. 겉모습은 천사지만 인간보다',hi:'버딕트에 더 가까운 존재',tail:'라서, 인간의 마음을 잘 이해하지 못합니다.',spec:[['종족 컨셉','인공 천사'],['포지션','극딜 / 힐러'],['결함 요소','감정 결여']],m:'셰리아, 하일로'},
+ shubna:{id:'bistaz',no:'03',c:'#a87024',en:'BISTAZ',sl:4,kr:'비스타즈',lead:'바벨이 인간의 유전자에 야생 동물의 DNA를 융합해 탄생시킨 생체 개조 종족. 인간에게 호의적인 동물을 바탕으로 만들어져',hi:'주인에게 충성하는 경향',tail:'이 강합니다.',spec:[['종족 컨셉','수인 · 메이드 · 서번트'],['포지션','탱커 / 근접 딜러'],['결함 요소','본능 폭주']],m:'슈브나, 칼리드'}
+};
+const DEF={'만성 과부하':'사이오닉 공통 결함','본능 폭주':'비스타즈 공통 결함','감정 결여':'미카엘라 공통 결함'};
+const race=r=>`
+<section class="race" id="${r.id}" style="--c:${r.c}">
+ <div class="wrap"><div class="rgrid">
+  <div class="rfw">${rbgt(r.no)}<figure class="rfig" role="img" aria-label="${r.kr} 종족 소개 카드"><img class="r0" src="media/race/${r.id}/bg.jpg" alt="" loading="lazy" width="960" height="960"><img class="r1" src="media/race/${r.id}/band.png" alt="" loading="lazy" width="960" height="960"><img class="r2" src="media/race/${r.id}/sil.png" alt="" loading="lazy" width="960" height="960"></figure></div>
+  <div class="rtext">
+   <div class="rhead"><div class="rlabel tw">UNIT ${r.no} · 종족 소개</div>
+   <h2 class="tw">${r.kr} <span class="en">${r.en}</span></h2></div>
+   <p class="tw">${r.lead} <mark>${r.hi}</mark>${r.tail}</p>
+   <div class="rline"><span>종족 컨셉</span><b>${r.spec[0][1]}</b><i aria-hidden="true"></i><span>소속 대원</span><b>${r.m}</b></div>
+  </div>
+ </div></div>
+</section>`;
+const UID={'사이오닉':'psionic','미카엘라':'mikaela','비스타즈':'bistaz'};
+const R2={'사이오닉':'PSIONIC','미카엘라':'MIKAELA','비스타즈':'BISTAZ'};
+const LOGO={"luka": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 3268 875\" role=\"img\" aria-label=\"LUKA\"><defs><clipPath id=\"lglukaa\"><polygon points=\"1943.8,-200 3069,-200 3069,1000 2383.0,1000\"/></clipPath><mask id=\"lglukam\" maskUnits=\"userSpaceOnUse\" x=\"-300\" y=\"-300\" width=\"3314\" height=\"1500\"><rect x=\"-300\" y=\"-300\" width=\"3314\" height=\"1500\" fill=\"#fff\"/><g stroke=\"#000\" stroke-width=\"13\" stroke-linecap=\"butt\"><line x1=\"-6.8\" y1=\"98.0\" x2=\"142.2\" y2=\"291.6\"/><line x1=\"134.8\" y1=\"-20.0\" x2=\"214.8\" y2=\"84.0\"/><line x1=\"219.4\" y1=\"-20.0\" x2=\"299.4\" y2=\"84.0\"/><line x1=\"560.2\" y1=\"154.0\" x2=\"709.2\" y2=\"347.6\"/><line x1=\"1610.7\" y1=\"436.8\" x2=\"1745.3\" y2=\"667.9\"/></g></mask></defs><g transform=\"translate(0,760) scale(1.3,-1)\"><g fill=\"#121216\" mask=\"url(#lglukam)\"><path transform=\"translate(-61)\" d=\"M65 700H201V115H551V0H65Z\"/><path transform=\"translate(506)\" d=\"M65 120V700H201V167L252 116H448L499 167V700H635V120L515 0H185Z\"/><path transform=\"translate(1212)\" d=\"M65 700H201V407H307L476 700H629L424 351L646 0H490L306 291H201V0H65Z\"/><g clip-path=\"url(#lglukaa)\"><path transform=\"translate(1869)\" d=\"M261 700H385L641 0H503L446 155H200L143 0H5ZM416 267 323 533H321L231 267Z\"/></g></g><polygon fill=\"#121216\" points=\"1873.0,0 1909.0,0 2165.2,700 2129.2,700\"/><polygon fill=\"#d6182a\" points=\"1890.6,-105 1958.6,-105 2272.2,752 2204.2,752\"/><polygon fill=\"#d6182a\" points=\"1834.6,-105 1870.6,-105 1903.9,-14 1867.9,-14\"/><polygon fill=\"#d6182a\" points=\"1800.3,-62 1834.3,-62 1851.9,-14 1817.9,-14\"/></g></svg>", "kain": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 2816 875\" role=\"img\" aria-label=\"KAIN\"><defs><clipPath id=\"lgkaina\"><polygon points=\"670.8,-200 1796,-200 1796,1000 1110.0,1000\"/></clipPath><mask id=\"lgkainm\" maskUnits=\"userSpaceOnUse\" x=\"-300\" y=\"-300\" width=\"2966\" height=\"1500\"><rect x=\"-300\" y=\"-300\" width=\"2966\" height=\"1500\" fill=\"#fff\"/><g stroke=\"#000\" stroke-width=\"13\" stroke-linecap=\"butt\"><line x1=\"-6.8\" y1=\"98.0\" x2=\"142.2\" y2=\"291.6\"/><line x1=\"134.8\" y1=\"-20.0\" x2=\"214.8\" y2=\"84.0\"/><line x1=\"219.4\" y1=\"-20.0\" x2=\"299.4\" y2=\"84.0\"/></g></mask></defs><g transform=\"translate(0,760) scale(1.3,-1)\"><g fill=\"#121216\" mask=\"url(#lgkainm)\"><path transform=\"translate(-61)\" d=\"M65 700H201V407H307L476 700H629L424 351L646 0H490L306 291H201V0H65Z\"/><g clip-path=\"url(#lgkaina)\"><path transform=\"translate(596)\" d=\"M261 700H385L641 0H503L446 155H200L143 0H5ZM416 267 323 533H321L231 267Z\"/></g><path transform=\"translate(1248)\" d=\"M70 700H206V0H70Z\"/><path transform=\"translate(1530)\" d=\"M65 700H187L499 225H501V700H632V0H510L198 474H196V0H65Z\"/></g><polygon fill=\"#121216\" points=\"600.0,0 636.0,0 892.2,700 856.2,700\"/><polygon fill=\"#d6182a\" points=\"617.6,-105 685.6,-105 999.2,752 931.2,752\"/><polygon fill=\"#d6182a\" points=\"561.6,-105 597.6,-105 630.9,-14 594.9,-14\"/><polygon fill=\"#d6182a\" points=\"527.3,-62 561.3,-62 578.9,-14 544.9,-14\"/></g></svg>", "sheria": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 4577 875\" role=\"img\" aria-label=\"SHERIA\"><defs><clipPath id=\"lgsheriaa\"><polygon points=\"2950.8,-200 4076,-200 4076,1000 3390.0,1000\"/></clipPath><mask id=\"lgsheriam\" maskUnits=\"userSpaceOnUse\" x=\"-300\" y=\"-300\" width=\"4321\" height=\"1500\"><rect x=\"-300\" y=\"-300\" width=\"4321\" height=\"1500\" fill=\"#fff\"/><g stroke=\"#000\" stroke-width=\"13\" stroke-linecap=\"butt\"><line x1=\"-6.8\" y1=\"98.0\" x2=\"142.2\" y2=\"291.6\"/><line x1=\"134.8\" y1=\"-20.0\" x2=\"214.8\" y2=\"84.0\"/><line x1=\"219.4\" y1=\"-20.0\" x2=\"299.4\" y2=\"84.0\"/><line x1=\"651.2\" y1=\"154.0\" x2=\"800.2\" y2=\"347.6\"/></g></mask></defs><g transform=\"translate(0,760) scale(1.3,-1)\"><g fill=\"#121216\" mask=\"url(#lgsheriam)\"><path transform=\"translate(-46)\" d=\"M50 108V208H184V149L217 116H424L458 150V266L425 299H160L52 407V592L160 700H476L584 592V491H450V551L417 584H219L186 551V448L219 415H484L592 307V110L482 0H158Z\"/><path transform=\"translate(597)\" d=\"M65 700H201V407H497V700H633V0H497V291H201V0H65Z\"/><path transform=\"translate(1301)\" d=\"M65 700H571V585H201V408H542V295H201V115H571V0H65Z\"/><path transform=\"translate(1913)\" d=\"M615 232V0H479V201L419 268H201V0H65V700H504L611 592V380L543 311ZM201 380H442L477 415V551L442 586H201Z\"/><path transform=\"translate(2594)\" d=\"M70 700H206V0H70Z\"/><g clip-path=\"url(#lgsheriaa)\"><path transform=\"translate(2876)\" d=\"M261 700H385L641 0H503L446 155H200L143 0H5ZM416 267 323 533H321L231 267Z\"/></g></g><polygon fill=\"#121216\" points=\"2880.0,0 2916.0,0 3172.2,700 3136.2,700\"/><polygon fill=\"#d6182a\" points=\"2897.6,-105 2965.6,-105 3279.2,752 3211.2,752\"/><polygon fill=\"#d6182a\" points=\"2841.6,-105 2877.6,-105 2910.9,-14 2874.9,-14\"/><polygon fill=\"#d6182a\" points=\"2807.3,-62 2841.3,-62 2858.9,-14 2824.9,-14\"/></g></svg>", "hailo": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 3631 875\" role=\"img\" aria-label=\"HAILO\"><defs><clipPath id=\"lghailoa\"><polygon points=\"717.8,-200 1843,-200 1843,1000 1157.0,1000\"/></clipPath><mask id=\"lghailom\" maskUnits=\"userSpaceOnUse\" x=\"-300\" y=\"-300\" width=\"3593\" height=\"1500\"><rect x=\"-300\" y=\"-300\" width=\"3593\" height=\"1500\" fill=\"#fff\"/><g stroke=\"#000\" stroke-width=\"13\" stroke-linecap=\"butt\"><line x1=\"-6.8\" y1=\"98.0\" x2=\"142.2\" y2=\"291.6\"/><line x1=\"134.8\" y1=\"-20.0\" x2=\"214.8\" y2=\"84.0\"/><line x1=\"219.4\" y1=\"-20.0\" x2=\"299.4\" y2=\"84.0\"/></g></mask></defs><g transform=\"translate(0,760) scale(1.3,-1)\"><g fill=\"#121216\" mask=\"url(#lghailom)\"><path transform=\"translate(-61)\" d=\"M65 700H201V407H497V700H633V0H497V291H201V0H65Z\"/><g clip-path=\"url(#lghailoa)\"><path transform=\"translate(643)\" d=\"M261 700H385L641 0H503L446 155H200L143 0H5ZM416 267 323 533H321L231 267Z\"/></g><path transform=\"translate(1295)\" d=\"M70 700H206V0H70Z\"/><path transform=\"translate(1577)\" d=\"M65 700H201V115H551V0H65Z\"/><path transform=\"translate(2144)\" d=\"M55 115V585L170 700H530L645 585V115L530 0H170ZM458 116 509 167V533L458 584H242L191 533V167L242 116Z\"/></g><polygon fill=\"#121216\" points=\"647.0,0 683.0,0 939.2,700 903.2,700\"/><polygon fill=\"#d6182a\" points=\"664.6,-105 732.6,-105 1046.2,752 978.2,752\"/><polygon fill=\"#d6182a\" points=\"608.6,-105 644.6,-105 677.9,-14 641.9,-14\"/><polygon fill=\"#d6182a\" points=\"574.3,-62 608.3,-62 625.9,-14 591.9,-14\"/></g></svg>", "shubna": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 5240 875\" role=\"img\" aria-label=\"SHUBNA\"><defs><clipPath id=\"lgshubnaa\"><polygon points=\"3460.8,-200 4586,-200 4586,1000 3900.0,1000\"/></clipPath><mask id=\"lgshubnam\" maskUnits=\"userSpaceOnUse\" x=\"-300\" y=\"-300\" width=\"4831\" height=\"1500\"><rect x=\"-300\" y=\"-300\" width=\"4831\" height=\"1500\" fill=\"#fff\"/><g stroke=\"#000\" stroke-width=\"13\" stroke-linecap=\"butt\"><line x1=\"-6.8\" y1=\"98.0\" x2=\"142.2\" y2=\"291.6\"/><line x1=\"134.8\" y1=\"-20.0\" x2=\"214.8\" y2=\"84.0\"/><line x1=\"219.4\" y1=\"-20.0\" x2=\"299.4\" y2=\"84.0\"/><line x1=\"651.2\" y1=\"154.0\" x2=\"800.2\" y2=\"347.6\"/></g></mask></defs><g transform=\"translate(0,760) scale(1.3,-1)\"><g fill=\"#121216\" mask=\"url(#lgshubnam)\"><path transform=\"translate(-46)\" d=\"M50 108V208H184V149L217 116H424L458 150V266L425 299H160L52 407V592L160 700H476L584 592V491H450V551L417 584H219L186 551V448L219 415H484L592 307V110L482 0H158Z\"/><path transform=\"translate(597)\" d=\"M65 700H201V407H497V700H633V0H497V291H201V0H65Z\"/><path transform=\"translate(1301)\" d=\"M65 120V700H201V167L252 116H448L499 167V700H635V120L515 0H185Z\"/><path transform=\"translate(2007)\" d=\"M65 700H504L604 600V404L564 363L635 291V108L527 0H65ZM434 407 470 443V551L435 586H198V407ZM458 114 501 157V255L458 298H198V114Z\"/><path transform=\"translate(2683)\" d=\"M65 700H187L499 225H501V700H632V0H510L198 474H196V0H65Z\"/><g clip-path=\"url(#lgshubnaa)\"><path transform=\"translate(3386)\" d=\"M261 700H385L641 0H503L446 155H200L143 0H5ZM416 267 323 533H321L231 267Z\"/></g></g><polygon fill=\"#121216\" points=\"3390.0,0 3426.0,0 3682.2,700 3646.2,700\"/><polygon fill=\"#d6182a\" points=\"3407.6,-105 3475.6,-105 3789.2,752 3721.2,752\"/><polygon fill=\"#d6182a\" points=\"3351.6,-105 3387.6,-105 3420.9,-14 3384.9,-14\"/><polygon fill=\"#d6182a\" points=\"3317.3,-62 3351.3,-62 3368.9,-14 3334.9,-14\"/></g></svg>", "khalid": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 4469 875\" role=\"img\" aria-label=\"KHALID\"><defs><clipPath id=\"lgkhalida\"><polygon points=\"1374.8,-200 2500,-200 2500,1000 1814.0,1000\"/></clipPath><mask id=\"lgkhalidm\" maskUnits=\"userSpaceOnUse\" x=\"-300\" y=\"-300\" width=\"4238\" height=\"1500\"><rect x=\"-300\" y=\"-300\" width=\"4238\" height=\"1500\" fill=\"#fff\"/><g stroke=\"#000\" stroke-width=\"13\" stroke-linecap=\"butt\"><line x1=\"-6.8\" y1=\"98.0\" x2=\"142.2\" y2=\"291.6\"/><line x1=\"134.8\" y1=\"-20.0\" x2=\"214.8\" y2=\"84.0\"/><line x1=\"219.4\" y1=\"-20.0\" x2=\"299.4\" y2=\"84.0\"/><line x1=\"650.2\" y1=\"154.0\" x2=\"799.2\" y2=\"347.6\"/></g></mask></defs><g transform=\"translate(0,760) scale(1.3,-1)\"><g fill=\"#121216\" mask=\"url(#lgkhalidm)\"><path transform=\"translate(-61)\" d=\"M65 700H201V407H307L476 700H629L424 351L646 0H490L306 291H201V0H65Z\"/><path transform=\"translate(596)\" d=\"M65 700H201V407H497V700H633V0H497V291H201V0H65Z\"/><g clip-path=\"url(#lgkhalida)\"><path transform=\"translate(1300)\" d=\"M261 700H385L641 0H503L446 155H200L143 0H5ZM416 267 323 533H321L231 267Z\"/></g><path transform=\"translate(1952)\" d=\"M65 700H201V115H551V0H65Z\"/><path transform=\"translate(2519)\" d=\"M70 700H206V0H70Z\"/><path transform=\"translate(2801)\" d=\"M65 700H513L633 580V120L513 0H65ZM446 116 497 167V533L446 584H201V116Z\"/></g><polygon fill=\"#121216\" points=\"1304.0,0 1340.0,0 1596.2,700 1560.2,700\"/><polygon fill=\"#d6182a\" points=\"1321.6,-105 1389.6,-105 1703.2,752 1635.2,752\"/><polygon fill=\"#d6182a\" points=\"1265.6,-105 1301.6,-105 1334.9,-14 1298.9,-14\"/><polygon fill=\"#d6182a\" points=\"1231.3,-62 1265.3,-62 1282.9,-14 1248.9,-14\"/></g></svg>"};
+const barcode=id=>{let h=0;for(const c of id)h=(h*31+c.charCodeAt(0))>>>0;let x=0,r='';
+ while(x<236){h=(h*1103515245+12345)>>>0;const w=1+(h>>>16)%3;r+=`<rect x="${x}" width="${w}" height="36"/>`;x+=w+1+((h>>>8)%3)}
+ return `<svg viewBox="0 0 240 36" preserveAspectRatio="none" aria-hidden="true" fill="#121216">${r}</svg>`};
+// warning tapes: three crossing bands per divider, text flows along each tape
+const TXT=['WARNING','DO NOT ENGAGE','WARNING','CLASSIFIED','WARNING','PALADIN FILE'];
+const runOf=(words,n)=>{const one=Array.from({length:n},(_,k)=>`<span>${words[k%words.length]}</span>`).join('');return `<div class="run">${one}${one}</div>`};
+// tape layouts vary per section for rhythm: [top %, angle deg, thin]
+const WORDS=[TXT,['DO NOT ENGAGE','WARNING','PALADIN ONLY','WARNING'],['ESCHATON // BABEL PALADIN ARCHIVE // CONFIDENTIAL'],['BABEL SECURITY LEVEL 3 // DO NOT ENGAGE'],['WARNING','CLASSIFIED','WARNING','IRIS HAZARD']];
+const layer=(list,cls,seed)=>`<div class="bgt ${cls}" aria-hidden="true">${list.map(([top,a,thin,side,len],k)=>{
+  const w=thin?WORDS[2+((seed+k)%2)]:WORDS[[0,1,4][(seed+k)%3]];
+  const sx='" style="';
+  return `<div class="tape${thin?' thin':''}${a>0?' rev':''}${sx}top:${top}%;--r:${a}deg" data-d="${a>0?1:-1}">${runOf(w,thin?10:16)}</div>`}).join('')}</div>`;
+const FILE_L=[
+ [[13,24],[44,-28,1],[83,-20]],                       // three, spread
+ [[14,18],[19,-13,1],[25,27],[78,-22]],              // tight cluster up top + one low
+ [[56,-31]],                                         // a single tape
+ [[33,21],[39,-25],[84,-12,1]],                      // crossing pair + thin low
+ [[66,-23],[72,19],[79,-6,1]],                       // cluster near the bottom
+ [[18,30],[64,-17,1]]                                // two, wide apart
+];
+// race / story bands are measured on the image box (+90px each side): keep angles shallow so the band stays behind the image inside the column
+const RACE_L=[[[40,11],[47,-8,1]],[[58,-12]],[[33,-9],[62,13],[67,6,1]]];
+const STORY_L=[[46,7],[52,-9,1],[58,-5]];
+const bgt=i=>layer(FILE_L[i%FILE_L.length],'',i);
+const rbgt=no=>layer(RACE_L[(+no-1)%RACE_L.length],'rb',+no);
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+if(reduce)document.documentElement.classList.add('rm');
+document.querySelectorAll('.seg i').forEach((e,k)=>e.style.setProperty('--k',k));
+document.getElementById('files').innerHTML=F.map((f,i)=>(R[f.id]?race(R[f.id]):'')+`
+<section class="file" id="${f.id}" style="--c:${f.c}">
+ ${bgt(i)}
+ <div class="wrap">
+  <div class="card">
+   ${reduce?`<img src="media/${f.id}.jpg" alt="${f.kr} 캐릭터 카드">`:
+   `<video src="media/${f.id}.mp4" poster="media/${f.id}.jpg" muted playsinline preload="metadata" aria-label="${f.kr} 캐릭터 카드 모션"></video>
+   <button class="replay" type="button">다시 재생</button>`}
+  </div>
+  <div class="sbox"><i class="peelw" aria-hidden="true"><i class="peel"></i></i><article class="sheet">
+   <i class="crn a"></i><i class="crn b"></i><i class="crn c"></i><i class="crn d"></i>
+   <div class="tab" aria-hidden="true">PALADIN FILE // 0${i+1}</div>
+   <div class="dhead">
+    <div class="dlogo"><b>ESCHATON</b><span>BABEL PALADIN ARCHIVE</span></div>
+    <div class="conf"><b>CONFIDENTIAL</b><span>DOC. NO. BBL-PMT-2098-0${i+1}</span></div>
+   </div>
+   <div class="sec rv"><i>01</i><b>PROFILE</b><span>기본 정보</span></div>
+   <div class="title rv">
+    <div class="name"><b>${LOGO[f.id]}</b><i>${f.code}</i><img class="uemb" src="media/unit/${UID[f.unit]}.png" alt="${f.unit} 유닛 로고" width="300" height="220"></div>
+    <div class="krl"><span>${f.kr}</span><s></s></div>
+    <div class="meta">${R2[f.unit]} UNIT · <em>${f.pos}</em></div>
+   </div>
+   <div class="top">
+    <div class="rv">
+     <p class="quote">${f.q}</p>
+     <p class="desc">${f.desc}</p>
+    </div>
+    <dl class="rows rv">
+     <div><dt><small>UNIT</small>소속 유닛</dt><dd>${f.unit} ${R2[f.unit]}</dd></div>
+     <div><dt><small>CLASS</small>클래스</dt><dd>${f.cls}</dd></div>
+     <div><dt><small>DEFECT</small>결함 요소</dt><dd class="red">${f.dt}</dd></div>
+    </dl>
+   </div>
+   <div class="iris rv">
+    <div class="lab"><em>IRIS CONTAMINATION</em>아이리스 오염도</div>
+    <div class="bar">${Array.from({length:10},(_,k)=>`<s class="${k<Math.round(f.iris/10)?'on':''}" style="transition-delay:${.5+k*.08}s"></s>`).join('')}<b>${f.iris} %</b></div>
+   </div>
+   <div class="sec rv"><i>02</i><b>WARNING</b><span>결함 · 취급 주의사항</span></div>
+   <div class="warn rv">
+    <div class="hz"></div>
+    <div class="wb"><div><strong>${f.dt}</strong></div><p>${f.dd}</p></div>
+   </div>
+   <div class="sec rv"><i>03</i><b>DESIGN NOTE</b><span>디자인 포인트</span></div>
+   <ol class="notes rv">${f.pts.map((p,k)=>`<li><details><summary><i>0${k+1}</i><b>${p[0]}</b><span class="chev" aria-hidden="true"></span></summary><p>${p[1]}</p></details></li>`).join('')}</ol>
+   <div class="dfoot">
+    <div class="bc">${barcode(f.id)}<span>// BABEL DOSSIER 00${i+1} : ${f.en}</span><small>ISSUED BY BABEL CORP. · PALADIN MANAGEMENT TEAM</small></div>
+    <div class="pg">PROJECT ESCHATON · PAGE 0${i+1} / 06</div>
+   </div>
+  </article></div>
+ </div>
+</section>`).join('');
+
+// play card motion when the card scrolls into view; restart each time it re-enters
+const play=v=>{try{v.currentTime=0;const p=v.play();if(p)p.catch(()=>{})}catch(e){}};
+const vidObs=new IntersectionObserver(es=>{for(const e of es){const v=e.target;
+  if(e.intersectionRatio>=.55){if(!v.dataset.on){v.dataset.on='1';play(v)}}
+  else if(e.intersectionRatio===0){v.dataset.on='';v.pause()}}},{root:SC,threshold:[0,.55]});
+document.querySelectorAll('.file').forEach(s=>{const v=s.querySelector('video');
+  if(v){vidObs.observe(v);s.querySelector('.replay').addEventListener('click',()=>play(v))}});
+// typewriter
+const twPrep=el=>{const w=document.createTreeWalker(el,NodeFilter.SHOW_TEXT);const nodes=[];while(w.nextNode())nodes.push(w.currentNode);
+  for(const n of nodes){const f=document.createDocumentFragment();for(const ch of n.data){const c=document.createElement('span');c.className='c';c.textContent=ch;f.appendChild(c)}n.replaceWith(f)}
+  el.setAttribute('aria-label',el.textContent)};
+const tws=[...document.querySelectorAll('.tw')];
+let introDone=Promise.resolve(), ready=false;
+if(!reduce)tws.forEach(twPrep);
+const chars=new Map(tws.map(el=>[el,[...el.querySelectorAll('.c')]]));
+const timers=new Map();
+let qEnd=0,qLast=null;
+// wait for the line above only while it is still on screen; once it has scrolled away, start right away
+const qWait=()=>{if(qLast&&qLast.getBoundingClientRect().bottom<0)return 0;return Math.max(0,qEnd-performance.now())};   // lines that start together type one after another
+const typeIn=(el,delay=0)=>{typeReset(el);const cs=chars.get(el);if(!cs||!cs.length)return 0;
+  const step=Math.max(28,Math.min(55,2200/cs.length)),ts=[];
+  cs.forEach((c,k)=>ts.push(setTimeout(()=>{if(k)cs[k-1].classList.remove('cur');c.classList.add('on','cur');
+    if(k===cs.length-1){el.classList.add('done');ts.push(setTimeout(()=>c.classList.remove('cur'),350))}},delay+k*step)));
+  timers.set(el,ts);return delay+cs.length*step};
+const typeReset=el=>{(timers.get(el)||[]).forEach(clearTimeout);timers.set(el,[]);(chars.get(el)||[]).forEach(c=>c.classList.remove('on','cur'));el.classList.remove('done')};
+const queueType=el=>{const now=performance.now(),d=qWait();const end=typeIn(el,d);qEnd=now+end+250;qLast=el};
+// every animated block plays when it reaches the reading area and resets once it has left the screen, so it replays scrolling either way
+const units=[];
+const unit=(el,play,reset)=>units.push({el,play,reset,on:false});
+// story lines always type top to bottom: a line that triggers early first queues any unplayed line above it
+{const lu=document.querySelector('.lineup'),lb=lu.querySelector('.lb'),lfs=[...lu.querySelectorAll('.lf')];let lt=null;
+ const luPlay=()=>{const now=performance.now(),d=qWait();lt=setTimeout(()=>{lb.classList.add('on');lfs.forEach(f=>f.classList.add('on'))},d);qEnd=now+d+1500;qLast=lu};
+ const luReset=()=>{clearTimeout(lt);lb.classList.remove('on');lfs.forEach(f=>f.classList.remove('on'))};
+ const st=[...document.querySelectorAll('.story .tw, .lineup')].sort((a,b)=>a.compareDocumentPosition(b)&2?1:-1),played=new Set();
+ const go=el=>el===lu?luPlay():queueType(el), stop=el=>el===lu?luReset():typeReset(el);
+ st.forEach((el,i)=>unit(el,()=>{for(let k=0;k<=i;k++)if(!played.has(st[k])){played.add(st[k]);go(st[k])}},
+   ()=>{played.delete(el);stop(el)}));
+ // a line that is reset but still has a played line above keeps order on replay too
+}
+{const segs=[...document.querySelectorAll('.seg i')];
+ unit(document.querySelector('.meter'),()=>segs.forEach(g=>g.classList.add('on')),()=>segs.forEach(g=>g.classList.remove('on')))}
+document.querySelectorAll('.rvs,.gloss,.sbox').forEach(el=>unit(el,()=>el.classList.add('in'),()=>el.classList.remove('in')));
+document.querySelectorAll('.race').forEach(sec=>{const fw=sec.querySelector('.rfw'),tx=[...sec.querySelectorAll('.tw')],ln=sec.querySelector('.rline');let t=null;
+  unit(fw,()=>{fw.classList.add('in');t=setTimeout(()=>{let d=0;for(const el of tx)d=typeIn(el,d)+250;t=setTimeout(()=>ln.classList.add('on'),d)},1900)},
+          ()=>{clearTimeout(t);fw.classList.remove('in');tx.forEach(typeReset);ln.classList.remove('on')})});
+const check=()=>{if(!ready)return;const vh=VH();
+  for(const u of units){const r=u.el.getBoundingClientRect();
+    if(!u.on&&r.top<vh*.8&&r.bottom>vh*.15){u.on=true;u.play()}
+    else if(u.on&&(r.bottom<-10||r.top>vh+10)){u.on=false;u.reset()}}};
+{let t=false;scrollEl.addEventListener('scroll',()=>{if(!t){t=true;requestAnimationFrame(()=>{t=false;check()})}},{passive:true});addEventListener('resize',check)}
+const startText=()=>{ready=true;check()};
+// intro (first load at the top of the page)
+if(!reduce&&scrollTop()<40){
+ const big=document.querySelector('.story .big'), bq=document.querySelector('.story blockquote');
+ big.classList.add('wait');bq.classList.add('wait');
+ const ov=document.createElement('div');ov.id='intro';ov.setAttribute('aria-hidden','true');
+ ov.innerHTML='<div class="nw"><div class="big"><b>0</b><span>%</span></div></div><div class="ln"></div>';
+ document.body.appendChild(ov);document.documentElement.style.overflow='hidden';if(SC)SC.style.overflow='hidden';
+ const ln=ov.querySelector('.ln'),nw=ov.querySelector('.nw'),nb=ov.querySelector('.big'),num=nb.querySelector('b');
+ const cy=Math.round(VH()*.62);ln.style.top=cy+'px';nw.style.top='0';nw.style.height=cy+'px';
+ const wait=ms=>new Promise(r=>setTimeout(r,ms));
+ let skip=false;ov.addEventListener('click',()=>{skip=true});
+ introDone=(async()=>{
+  await ln.animate([{transform:'scaleX(0)'},{transform:'scaleX(1)'}],{duration:skip?1:700,easing:'cubic-bezier(.7,0,.2,1)',fill:'forwards'}).finished;
+  nb.animate([{transform:'translateY(105%)'},{transform:'translateY(0)'}],{duration:skip?1:650,easing:'cubic-bezier(.15,.8,.2,1)',fill:'forwards'});
+  const t0=performance.now(),D=skip?1:1500;
+  await new Promise(res=>{const f=n=>{const p=Math.min(1,(n-t0)/D);num.textContent=Math.round(80*(1-Math.pow(1-p,3)));p<1&&!skip?requestAnimationFrame(f):(num.textContent='80',res())};requestAnimationFrame(f)});
+  await wait(skip?0:350);
+  // fly into the layout position (number) and the blockquote rule (line)
+  const a=nb.getBoundingClientRect(),b=big.getBoundingClientRect(),q=bq.getBoundingClientRect();
+  const s=(b.height)/(a.height)*(big.querySelector('b').getBoundingClientRect().height/b.height)/(nb.querySelector('b').getBoundingClientRect().height/a.height);
+  const bb=big.querySelector('b').getBoundingClientRect(),ab=nb.querySelector('b').getBoundingClientRect(),sc=bb.height/ab.height;
+  nw.style.overflow='visible';
+  const dur=skip?1:900,ez='cubic-bezier(.7,0,.15,1)';
+  nb.style.transformOrigin='0 0';
+  nb.animate([{transform:'translate(0,0) scale(1)'},{transform:`translate(${bb.left-ab.left}px,${bb.top-ab.top}px) scale(${sc})`}],{duration:dur,easing:ez,fill:'forwards'});
+  ln.animate([{transform:'translate(0,0) scaleX(1)'},{transform:`translate(${q.left}px,${q.top-cy}px) scaleX(${q.width/innerWidth})`}],{duration:dur,easing:ez,fill:'forwards'});
+  await ov.animate([{backgroundColor:getComputedStyle(ov).backgroundColor},{backgroundColor:'rgba(0,0,0,0)'}],{duration:dur,easing:ez,fill:'forwards'}).finished;
+  big.classList.remove('wait');bq.classList.remove('wait');ov.remove();document.documentElement.style.overflow='';if(SC)SC.style.overflow='';
+ })();
+}
+introDone.then(startText);
+if(!reduce){
+ const bands=[...document.querySelectorAll('.bgt')];let tick=false;
+ const drift=()=>{tick=false;const vh=VH();
+  for(const b of bands){const r=b.getBoundingClientRect();if(r.bottom<-50||r.top>vh+50)continue;
+   const p=(vh-r.top)/(vh+r.height);[...b.children].filter(t=>!t.classList.contains('side')).forEach(t=>t.style.setProperty('--sx',`${(+t.dataset.d)*(p-.5)*260}px`))}};
+ scrollEl.addEventListener('scroll',()=>{if(!tick){tick=true;requestAnimationFrame(drift)}},{passive:true});drift();
+}
+}
+</script>
+</body>
+</html>
